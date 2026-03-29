@@ -1,0 +1,11 @@
+TOKEN = "8777039275:AAGgB9p5jwFsKZcUBXwis9bVgyjmfS-4BzQ"
+PHOTO = ""
+CHANNEL_LINK = "https://t.me/funworldmain"
+CHANNEL_ID = "@funworldmain"
+PASS_THRESHOLD = 4
+COOLDOWN_MINUTES = 5
+DB_PATH = "bot_database.db"
+WELCOME_PHOTO = ""
+WELCOME_VIDEO = ""
+PAYMENT_PROVIDER_TOKEN = ""
+ADMIN_PASSWORD = "brokkoly1234"
