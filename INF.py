@@ -1,4 +1,3 @@
-TOKEN = "8777039275:AAGgB9p5jwFsKZcUBXwis9bVgyjmfS-4BzQ"
 PHOTO = ""
 CHANNEL_LINK = "https://t.me/funworldmain"
 CHANNEL_ID = "@funworldmain"
