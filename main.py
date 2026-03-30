@@ -429,6 +429,16 @@ async def inline_share(query: InlineQuery):
     )
     await query.answer(results=[result], cache_time=300, is_personal=True)
 
+# ══════════════════════════════════
+#           ПРАВИЛА
+# ══════════════════════════════════
+
+@dp.message(Command("rules"))
+async def rule (message: Message):
+    await message.answer("Вот все нынешние правила сервера:"
+                         "1)Не быть мудаком \n"
+                         "2) Слушать хоста \n"
+                         "")
 
 # ══════════════════════════════════
 #          АДМИН-ПАНЕЛЬ
@@ -684,6 +694,7 @@ async def main():
         BotCommand(command="lang",         description="Язык / Language"),
         BotCommand(command="cancel",       description="Отмена / Cancel"),
         BotCommand(command="admin",        description="Админка / Admin"),
+        BotCommand(command="rules",        description="Правила / Rules"),
     ])
 
     logger.info("Запуск бота (polling)...")
