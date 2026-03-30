@@ -1,7 +1,7 @@
 TEXTS: dict[str, dict[str, str]] = {
     "start_welcome": {
-        "ru": "👋 Привет, <b>{name}</b>!\nЭто бот канала <b>Funworld</b>.\n/help — список команд\n🌐 Сменить язык → /lang",
-        "en": "👋 Hi, <b>{name}</b>!\nThis is the <b>Funworld</b> bot.\n/help — commands\n🌐 Change language → /lang",
+        "ru": "👋 Привет, <b>{name}</b>!\nЭто бот канала <b>Gnom world</b>.\n/help — список команд\n🌐 Сменить язык → /lang.\n/rules — список правил сервера, обязательно к прочтению" ,
+        "en": "👋 Hi, <b>{name}</b>!\nThis is the <b>Gnom world</b> bot.\n/help — commands\n🌐 Change language → /lang.\n/rules — rules, must read",
     },
     "help_text": {
         "ru": (
