@@ -436,7 +436,7 @@ async def inline_share(query: InlineQuery):
 @dp.message(Command("rules"))
 async def rule (message: Message):
     await message.answer("Вот все нынешние правила сервера:\n"
-                         "1)Не быть мудаком \n"
+                         "1) Не быть мудаком \n"
                          "2) Слушать хоста \n"
                          "3) Не гриферить \n"
                          "4) Не красть \n"
