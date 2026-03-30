@@ -15,7 +15,8 @@ TEXTS: dict[str, dict[str, str]] = {
             "/mytickets — мои тикеты\n"
             "/lang — сменить язык\n"
             "/cancel — отменить действие\n"
-            "/admin — админ-панель"
+            "/admin — админ-панель\n"
+            "/rules — правила сервера"
         ),
         "en": (
             "📋 <b>Commands:</b>\n\n"
@@ -28,7 +29,8 @@ TEXTS: dict[str, dict[str, str]] = {
             "/mytickets — my tickets\n"
             "/lang — change language\n"
             "/cancel — cancel action\n"
-            "/admin — admin panel"
+            "/admin — admin panel\n"
+            "/rules — server rules"
         ),
     },
     "cancel_nothing": {
