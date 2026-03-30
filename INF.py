@@ -1,3 +1,4 @@
+TOKEN = "API_TOKEN"
 PHOTO = ""
 CHANNEL_LINK = "https://t.me/funworldmain"
 CHANNEL_ID = "@funworldmain"
