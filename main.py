@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import random
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import (
@@ -55,21 +56,122 @@ config = {
 
 authorized_admins: set[int] = set()
 
-# ────────── Вопросы ──────────
+# ────────── Расширенная база вопросов (50 штук) ──────────
 
-QUESTIONS = [
-    {"text_key": "q_human",     "correct": "yes", "block": True},
-    {"text_key": "q_minecraft", "correct": "yes", "block": False},
-    {"text_key": "q_cheats",    "correct": "no",  "block": True},
-    {"text_key": "q_gnomes",    "correct": "yes", "block": False},
-    {"text_key": "q_rules",     "correct": "yes", "block": False},
+ALL_QUESTIONS = [
+    {"text_key": "q_human",           "correct": "yes", "block": True},
+    {"text_key": "q_minecraft",       "correct": "yes", "block": False},
+    {"text_key": "q_cheats",          "correct": "no",  "block": True},
+    {"text_key": "q_gnomes",          "correct": "yes", "block": False},
+    {"text_key": "q_rules",           "correct": "yes", "block": False},
+    {"text_key": "q_respect_players", "correct": "yes", "block": False},
+    {"text_key": "q_grief_ok",        "correct": "no",  "block": True},
+    {"text_key": "q_steal_items",     "correct": "no",  "block": True},
+    {"text_key": "q_listen_admins",   "correct": "yes", "block": False},
+    {"text_key": "q_spam_chat",       "correct": "no",  "block": False},
+    {"text_key": "q_build_perm",      "correct": "yes", "block": False},
+    {"text_key": "q_mega_project",    "correct": "yes", "block": False},
+    {"text_key": "q_caps_ok",         "correct": "no",  "block": False},
+    {"text_key": "q_optimize_builds", "correct": "yes", "block": False},
+    {"text_key": "q_play_fair",       "correct": "yes", "block": False},
+    {"text_key": "q_xray_allowed",    "correct": "no",  "block": True},
+    {"text_key": "q_help_newbies",    "correct": "yes", "block": False},
+    {"text_key": "q_pvp_no_consent",  "correct": "no",  "block": False},
+    {"text_key": "q_follow_host",     "correct": "yes", "block": False},
+    {"text_key": "q_bug_exploit",     "correct": "no",  "block": True},
+    {"text_key": "q_share_coords",    "correct": "yes", "block": False},
+    {"text_key": "q_destroy_spawn",   "correct": "no",  "block": True},
+    {"text_key": "q_afk_machines",    "correct": "no",  "block": False},
+    {"text_key": "q_report_bugs",     "correct": "yes", "block": False},
+    {"text_key": "q_hate_speech",     "correct": "no",  "block": True},
+    {"text_key": "q_teamwork",        "correct": "yes", "block": False},
+    {"text_key": "q_lava_grief",      "correct": "no",  "block": True},
+    {"text_key": "q_respect_builds",  "correct": "yes", "block": False},
+    {"text_key": "q_mod_approval",    "correct": "yes", "block": False},
+    {"text_key": "q_tnt_everywhere",  "correct": "no",  "block": True},
+    {"text_key": "q_be_kind",         "correct": "yes", "block": False},
+    {"text_key": "q_trade_fair",      "correct": "yes", "block": False},
+    {"text_key": "q_impersonate",     "correct": "no",  "block": True},
+    {"text_key": "q_protect_env",     "correct": "yes", "block": False},
+    {"text_key": "q_duplication",     "correct": "no",  "block": True},
+    {"text_key": "q_community_event", "correct": "yes", "block": False},
+    {"text_key": "q_block_entrance",  "correct": "no",  "block": False},
+    {"text_key": "q_ask_before_take", "correct": "yes", "block": False},
+    {"text_key": "q_swear_ok",        "correct": "no",  "block": False},
+    {"text_key": "q_redstone_lag",    "correct": "no",  "block": False},
+    {"text_key": "q_welcome_new",     "correct": "yes", "block": False},
+    {"text_key": "q_fly_hack",        "correct": "no",  "block": True},
+    {"text_key": "q_base_claim",      "correct": "yes", "block": False},
+    {"text_key": "q_kill_pets",       "correct": "no",  "block": False},
+    {"text_key": "q_share_food",      "correct": "yes", "block": False},
+    {"text_key": "q_server_lag",      "correct": "no",  "block": False},
+    {"text_key": "q_mini_game",       "correct": "yes", "block": False},
+    {"text_key": "q_respect_border",  "correct": "yes", "block": False},
+    {"text_key": "q_use_common",      "correct": "yes", "block": False},
+    {"text_key": "q_autoclick",       "correct": "no",  "block": True},
 ]
-TOTAL = len(QUESTIONS)
+
+QUESTIONS_PER_QUIZ = 5
+
+# ────────── Правила сервера (для мини-опроса) ──────────
+
+REAL_RULES = [
+    "Не быть мудаком",
+    "Слушать хоста",
+    "Не гриферить",
+    "Не красть",
+    "Не трогать постройки без разрешения",
+    "Мега проекты согласовать с админами",
+    "Слушать админов",
+    "Уважать гномов",
+    "Не спамить",
+    "Желательно не использовать капс",
+    "Не загружать сервер (оптимизировать механизмы)",
+]
+
+FAKE_RULES = [
+    "Можно гриферить по пятницам",
+    "PvP разрешён без согласия",
+    "Разрешено использовать читы",
+    "Можно воровать, если никто не видит",
+    "Капс обязателен в чате",
+    "Спам приветствуется",
+    "Можно ломать спаун",
+    "Админов можно не слушать в выходные",
+    "Лава-гриф разрешён",
+    "TNT можно ставить везде",
+    "Можно выдавать себя за админа",
+    "Дюп предметов разрешён",
+    "AFK-фермы без ограничений",
+    "Можно убивать питомцев других игроков",
+    "Ругань в чате поощряется",
+    "Автокликеры разрешены",
+    "Можно блокировать входы в чужие базы",
+    "X-ray разрешён для всех",
+    "Летать с хаками можно",
+    "Эксплойты багов разрешены",
+]
+
+
+def generate_rules_question() -> dict:
+    real_rule = random.choice(REAL_RULES)
+    fakes = random.sample(FAKE_RULES, 2)
+    options = [real_rule] + fakes
+    random.shuffle(options)
+    correct_index = options.index(real_rule)
+    return {
+        "question_text": "📜 Какое из этих правил действительно есть на сервере?",
+        "options": options,
+        "correct_index": correct_index,
+    }
+
 
 # ────────── FSM ──────────
 
 class Quiz(StatesGroup):
     answering = State()
+    rules_check = State()
+
 
 class Admin(StatesGroup):
     password          = State()
@@ -81,8 +183,10 @@ class Admin(StatesGroup):
     confirm_reset_reg = State()
     confirm_reset_cd  = State()
 
+
 class Ticket(StatesGroup):
     writing = State()
+
 
 # ────────── Клавиатуры ──────────
 
@@ -95,6 +199,11 @@ def yn_kb(la: str) -> ReplyKeyboardMarkup:
         resize_keyboard=True,
         one_time_keyboard=True,
     )
+
+
+retry_kb = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="🔄 Пройти ещё раз", callback_data="retry_reg")],
+])
 
 lang_kb = InlineKeyboardMarkup(inline_keyboard=[[
     InlineKeyboardButton(text="🇷🇺 Русский", callback_data="lang:ru"),
@@ -137,6 +246,7 @@ confirm_kb = ReplyKeyboardMarkup(
     resize_keyboard=True,
 )
 
+
 # ────────── Утилиты ──────────
 
 async def get_lang(uid: int) -> str:
@@ -152,6 +262,41 @@ async def send_welcome(message: Message, text: str):
         await message.answer_photo(pho, caption=text)
     else:
         await message.answer(text)
+
+
+def build_rules_inline_kb(options: list[str]) -> InlineKeyboardMarkup:
+    buttons = []
+    for i, option in enumerate(options):
+        buttons.append([
+            InlineKeyboardButton(
+                text=f"{i + 1}. {option}",
+                callback_data=f"rules_ans:{i}",
+            )
+        ])
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
+async def start_quiz_for_user(message: Message, state: FSMContext, uid: int, la: str):
+    """Общая логика запуска теста."""
+    selected_questions = random.sample(ALL_QUESTIONS, min(QUESTIONS_PER_QUIZ, len(ALL_QUESTIONS)))
+    total = len(selected_questions)
+
+    await state.update_data(
+        score=0,
+        idx=0,
+        lang=la,
+        questions=selected_questions,
+        total=total,
+    )
+    await state.set_state(Quiz.answering)
+
+    q = selected_questions[0]
+    await message.answer(t("quiz_start", la))
+    await message.answer(
+        t("quiz_question", la, n=1, total=total, text=t(q["text_key"], la)),
+        reply_markup=yn_kb(la),
+    )
+    logger.info("Пользователь %s начал тест (выбрано %d вопросов)", uid, total)
 
 
 # ══════════════════════════════════
@@ -195,8 +340,7 @@ async def cb_lang(cb: CallbackQuery):
 
 
 # ══════════════════════════════════
-#    РЕГИСТРАЦИЯ — СНАЧАЛА ТЕСТ
-#    ССЫЛКА ТОЛЬКО ПОСЛЕ ПРОХОЖДЕНИЯ
+#    РЕГИСТРАЦИЯ — ТЕСТ + МИНИ-ОПРОС
 # ══════════════════════════════════
 
 @dp.message(Command("registration"))
@@ -205,33 +349,57 @@ async def cmd_reg(message: Message, state: FSMContext):
     await db.ensure_user(uid, message.from_user.username or "", message.from_user.full_name)
     la = await get_lang(uid)
 
-    # Уже прошёл тест — сразу даём ссылку
-    if await db.is_registered(uid):
-        await message.answer(t("already_registered", la, link=config["CHANNEL_LINK"]))
-        return
-
-    # Кулдаун
+    # Кулдаун (проверяем всегда, даже если зареган — потом уберём)
     rem = await db.get_remaining_cooldown(uid)
     if rem:
-        await message.answer(t("cooldown_wait", la, min=rem.seconds // 60, sec=rem.seconds % 60))
+        await message.answer(
+            t("cooldown_wait", la, min=rem.seconds // 60, sec=rem.seconds % 60),
+            reply_markup=retry_kb,
+        )
         return
 
-    # Ставим кулдаун и считаем попытку
     await db.set_cooldown(uid, config["COOLDOWN_MINUTES"])
     await db.increment_attempts(uid)
 
+    await start_quiz_for_user(message, state, uid, la)
+
+
+# ── Кнопка «Пройти ещё раз» — работает ВСЕГДА, даже если уже зарегистрирован ──
+
+@dp.callback_query(F.data == "retry_reg")
+async def cb_retry_registration(cb: CallbackQuery, state: FSMContext):
+    uid = cb.from_user.id
+    await db.ensure_user(uid, cb.from_user.username or "", cb.from_user.full_name)
+    la = await get_lang(uid)
+
+    # Проверяем кулдаун
+    rem = await db.get_remaining_cooldown(uid)
+    if rem:
+        minutes = rem.seconds // 60
+        seconds = rem.seconds % 60
+        await cb.answer(
+            f"⏳ Подожди ещё {minutes} мин. {seconds} сек.",
+            show_alert=True,
+        )
+        return
+
+    # Ставим новый кулдаун и считаем попытку
+    await db.set_cooldown(uid, config["COOLDOWN_MINUTES"])
+    await db.increment_attempts(uid)
+
+    # Убираем inline-кнопку из старого сообщения
+    try:
+        await cb.message.edit_reply_markup(reply_markup=None)
+    except Exception:
+        pass
+
+    await cb.answer("🔄 Начинаем новую попытку!")
+
     # Запускаем тест
-    await state.update_data(score=0, idx=0, lang=la)
-    await state.set_state(Quiz.answering)
+    await start_quiz_for_user(cb.message, state, uid, la)
 
-    q = QUESTIONS[0]
-    await message.answer(t("quiz_start", la))
-    await message.answer(
-        t("quiz_question", la, n=1, total=TOTAL, text=t(q["text_key"], la)),
-        reply_markup=yn_kb(la),
-    )
-    logger.info("Пользователь %s начал тест", uid)
 
+# ── Основной опрос ──
 
 @dp.message(Quiz.answering)
 async def quiz_answer(message: Message, state: FSMContext):
@@ -239,6 +407,8 @@ async def quiz_answer(message: Message, state: FSMContext):
     la = data.get("lang", "ru")
     idx = data["idx"]
     score = data["score"]
+    questions = data["questions"]
+    total = data["total"]
     yes = t("btn_yes", la)
     no = t("btn_no", la)
 
@@ -246,7 +416,7 @@ async def quiz_answer(message: Message, state: FSMContext):
         await message.answer(t("quiz_invalid", la), reply_markup=yn_kb(la))
         return
 
-    q = QUESTIONS[idx]
+    q = questions[idx]
     ans = "yes" if message.text == yes else "no"
     correct = ans == q["correct"]
 
@@ -257,51 +427,143 @@ async def quiz_answer(message: Message, state: FSMContext):
         photo = config["PHOTO"]
         txt = t("quiz_blocked", la)
         if photo:
-            await message.answer_photo(photo, caption=txt, reply_markup=ReplyKeyboardRemove())
+            await message.answer_photo(
+                photo, caption=txt, reply_markup=ReplyKeyboardRemove()
+            )
         else:
             await message.answer(txt, reply_markup=ReplyKeyboardRemove())
+        # Кнопка retry после блокировки
+        await message.answer(
+            "Когда будешь готов — нажми кнопку ниже 👇",
+            reply_markup=retry_kb,
+        )
         await state.clear()
         return
 
     idx += 1
-    if idx < TOTAL:
+    if idx < total:
         await state.update_data(score=score, idx=idx)
-        nq = QUESTIONS[idx]
+        nq = questions[idx]
         await message.answer(
-            t("quiz_question", la, n=idx + 1, total=TOTAL, text=t(nq["text_key"], la)),
+            t("quiz_question", la, n=idx + 1, total=total, text=t(nq["text_key"], la)),
             reply_markup=yn_kb(la),
         )
     else:
-        await state.clear()
-        await finish_quiz(message, score, la)
+        await state.update_data(score=score)
+        await finish_main_quiz(message, state, score, total, la)
 
 
-async def finish_quiz(message: Message, score: int, la: str):
+async def finish_main_quiz(message: Message, state: FSMContext, score: int, total: int, la: str):
     uid = message.from_user.id
 
     if score >= config["PASS_THRESHOLD"]:
-        # ── Тест пройден — регистрируем и даём ссылку ──
-        await db.set_registered(uid)
-        logger.info("Пользователь %s прошёл тест (%d/%d)", uid, score, TOTAL)
+        await message.answer(
+            f"✅ Основной опрос пройден! Результат: {score}/{total}\n\n"
+            f"⏳ Через секунду начнётся мини-опрос по правилам сервера...",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+
+        await asyncio.sleep(1)
+
+        rules_q = generate_rules_question()
+        await state.update_data(
+            main_score=score,
+            main_total=total,
+            rules_correct_index=rules_q["correct_index"],
+            rules_options=rules_q["options"],
+        )
+        await state.set_state(Quiz.rules_check)
+
+        options_text = "\n".join(
+            f"  {i + 1}) {opt}" for i, opt in enumerate(rules_q["options"])
+        )
+        question_text = (
+            f"📜 <b>Мини-опрос: Правила сервера</b>\n\n"
+            f"{rules_q['question_text']}\n\n"
+            f"{options_text}\n\n"
+            f"Выберите правильный вариант:"
+        )
 
         await message.answer(
-            t("quiz_passed", la, score=score, total=TOTAL, link=config["CHANNEL_LINK"]),
+            question_text,
+            reply_markup=build_rules_inline_kb(rules_q["options"]),
+        )
+        logger.info("Пользователь %s начал мини-опрос по правилам", uid)
+
+    else:
+        logger.info("Пользователь %s не прошёл тест (%d/%d)", uid, score, total)
+        await message.answer(
+            t("quiz_failed", la, score=score, total=total),
             reply_markup=ReplyKeyboardRemove(),
+        )
+        # Кнопка retry после провала
+        await message.answer(
+            "Когда будешь готов — нажми кнопку ниже 👇",
+            reply_markup=retry_kb,
+        )
+        await state.clear()
+
+
+# ── Мини-опрос по правилам ──
+
+@dp.callback_query(F.data.startswith("rules_ans:"))
+async def cb_rules_answer(cb: CallbackQuery, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state != Quiz.rules_check.state:
+        await cb.answer("⚠️ Этот опрос уже завершён.", show_alert=True)
+        return
+
+    data = await state.get_data()
+    la = data.get("lang", "ru")
+    correct_index = data["rules_correct_index"]
+    options = data["rules_options"]
+    main_score = data["main_score"]
+    main_total = data["main_total"]
+
+    chosen_index = int(cb.data.split(":")[1])
+    uid = cb.from_user.id
+
+    if chosen_index == correct_index:
+        # ✅ Всё пройдено — регистрация
+        await db.set_registered(uid)
+        logger.info("Пользователь %s прошёл мини-опрос и зарегистрирован", uid)
+
+        await cb.message.edit_text(
+            f"✅ <b>Правильно!</b> Правило: «{options[correct_index]}»\n\n"
+            f"🎉 Вы успешно прошли все проверки!\n"
+            f"Результат теста: {main_score}/{main_total}\n\n"
+            f"🔗 Ссылка на канал: {config['CHANNEL_LINK']}"
+        )
+
+        # Кнопка «Пройти ещё раз» даже после успеха (временно)
+        await cb.message.answer(
+            "Хочешь пройти ещё раз? 👇",
+            reply_markup=retry_kb,
         )
 
         # Достижения
         attempts = await db.get_attempts(uid)
         if attempts == 1 and await db.grant_achievement(uid, "first_try"):
-            await message.answer(t("ach_earned", la, name=ACHIEVEMENT_DEFS["first_try"][la]))
-        if score == TOTAL and await db.grant_achievement(uid, "perfect"):
-            await message.answer(t("ach_earned", la, name=ACHIEVEMENT_DEFS["perfect"][la]))
+            await cb.message.answer(
+                t("ach_earned", la, name=ACHIEVEMENT_DEFS["first_try"][la])
+            )
+        if main_score == main_total and await db.grant_achievement(uid, "perfect"):
+            await cb.message.answer(
+                t("ach_earned", la, name=ACHIEVEMENT_DEFS["perfect"][la])
+            )
     else:
-        # ── Не прошёл — ссылка НЕ даётся ──
-        logger.info("Пользователь %s не прошёл тест (%d/%d)", uid, score, TOTAL)
-        await message.answer(
-            t("quiz_failed", la, score=score, total=TOTAL),
-            reply_markup=ReplyKeyboardRemove(),
+        # ❌ Мини-опрос провален — кнопка retry
+        logger.info("Пользователь %s не прошёл мини-опрос по правилам", uid)
+        await cb.message.edit_text(
+            f"❌ <b>Неправильно!</b>\n\n"
+            f"Правильный ответ: «{options[correct_index]}»\n\n"
+            f"Вы не прошли проверку на знание правил.\n"
+            f"Прочитайте правила (/rules) и попробуйте снова!",
+            reply_markup=retry_kb,
         )
+
+    await state.clear()
+    await cb.answer()
 
 
 # ══════════════════════════════════
@@ -429,24 +691,18 @@ async def inline_share(query: InlineQuery):
     )
     await query.answer(results=[result], cache_time=300, is_personal=True)
 
+
 # ══════════════════════════════════
 #           ПРАВИЛА
 # ══════════════════════════════════
 
 @dp.message(Command("rules"))
-async def rule (message: Message):
-    await message.answer("Вот все нынешние правила сервера:\n"
-                         "1) Не быть мудаком \n"
-                         "2) Слушать хоста \n"
-                         "3) Не гриферить \n"
-                         "4) Не красть \n"
-                         "5) Не трогать постройки без разрешения \n"
-                         "6) Мега проекты согласовать с админами \n"
-                         "7) Слушать админов \n"
-                         "8) Уважать гномов \n"
-                         "9) Не спамить \n"
-                         "10) Желательно не использовать капс \n"
-                         "11) Не загружать сервер (оптимизировать механизмы) \n")
+async def rule(message: Message):
+    rules_text = "📜 <b>Вот все нынешние правила сервера:</b>\n\n"
+    for i, r in enumerate(REAL_RULES, 1):
+        rules_text += f"{i}) {r}\n"
+    await message.answer(rules_text)
+
 
 # ══════════════════════════════════
 #          АДМИН-ПАНЕЛЬ
@@ -486,8 +742,10 @@ async def admin_panel(message: Message, state: FSMContext):
             f"🔗 Канал: {config['CHANNEL_LINK']}\n"
             f"📡 ID: <code>{config['CHANNEL_ID']}</code>\n"
             f"🖼 Фото: <code>{config['PHOTO'] or '—'}</code>\n"
-            f"✅ Порог: {config['PASS_THRESHOLD']}/{TOTAL}\n"
+            f"✅ Порог: {config['PASS_THRESHOLD']}/{QUESTIONS_PER_QUIZ}\n"
             f"⏱ Кулдаун: {config['COOLDOWN_MINUTES']} мин.\n\n"
+            f"📚 Вопросов в базе: {len(ALL_QUESTIONS)}\n"
+            f"🎲 Выбирается: {QUESTIONS_PER_QUIZ}\n\n"
             f"👥 Всего: {st['total']}\n"
             f"✅ Зарег: {st['registered']}\n"
             f"⏳ Кулдаун: {cd}\n"
@@ -496,19 +754,32 @@ async def admin_panel(message: Message, state: FSMContext):
 
     elif txt == "🔗 Ссылка канала":
         await state.set_state(Admin.edit_link)
-        await message.answer(f"Текущая: {config['CHANNEL_LINK']}\nНовая:", reply_markup=ReplyKeyboardRemove())
+        await message.answer(
+            f"Текущая: {config['CHANNEL_LINK']}\nНовая:",
+            reply_markup=ReplyKeyboardRemove(),
+        )
 
     elif txt == "🖼 Фото блокировки":
         await state.set_state(Admin.edit_photo)
-        await message.answer("Отправь фото, file_id, URL\n<code>clear</code> — убрать.", reply_markup=ReplyKeyboardRemove())
+        await message.answer(
+            "Отправь фото, file_id, URL\n<code>clear</code> — убрать.",
+            reply_markup=ReplyKeyboardRemove(),
+        )
 
     elif txt == "✅ Порог":
         await state.set_state(Admin.edit_threshold)
-        await message.answer(f"Текущий: {config['PASS_THRESHOLD']}/{TOTAL}\nНовый (1–{TOTAL}):", reply_markup=ReplyKeyboardRemove())
+        await message.answer(
+            f"Текущий: {config['PASS_THRESHOLD']}/{QUESTIONS_PER_QUIZ}\n"
+            f"Новый (1–{QUESTIONS_PER_QUIZ}):",
+            reply_markup=ReplyKeyboardRemove(),
+        )
 
     elif txt == "⏱ Кулдаун":
         await state.set_state(Admin.edit_cooldown)
-        await message.answer(f"Текущий: {config['COOLDOWN_MINUTES']} мин.\nНовый:", reply_markup=ReplyKeyboardRemove())
+        await message.answer(
+            f"Текущий: {config['COOLDOWN_MINUTES']} мин.\nНовый:",
+            reply_markup=ReplyKeyboardRemove(),
+        )
 
     elif txt == "👥 Статистика":
         st = await db.get_user_stats()
@@ -574,20 +845,23 @@ async def set_photo(message: Message, state: FSMContext):
         val = message.text.strip()
         config["PHOTO"] = "" if val.lower() == "clear" else val
     await state.set_state(Admin.panel)
-    await message.answer(f"✅ Фото: <code>{config['PHOTO'] or '(убрано)'}</code>", reply_markup=admin_kb)
+    await message.answer(
+        f"✅ Фото: <code>{config['PHOTO'] or '(убрано)'}</code>",
+        reply_markup=admin_kb,
+    )
 
 
 @dp.message(Admin.edit_threshold)
 async def set_threshold(message: Message, state: FSMContext):
     try:
         v = int(message.text.strip())
-        assert 1 <= v <= TOTAL
+        assert 1 <= v <= QUESTIONS_PER_QUIZ
     except (ValueError, AssertionError):
-        await message.answer(f"⚠️ Число от 1 до {TOTAL}.")
+        await message.answer(f"⚠️ Число от 1 до {QUESTIONS_PER_QUIZ}.")
         return
     config["PASS_THRESHOLD"] = v
     await state.set_state(Admin.panel)
-    await message.answer(f"✅ Порог: {v}/{TOTAL}", reply_markup=admin_kb)
+    await message.answer(f"✅ Порог: {v}/{QUESTIONS_PER_QUIZ}", reply_markup=admin_kb)
 
 
 @dp.message(Admin.edit_cooldown)
